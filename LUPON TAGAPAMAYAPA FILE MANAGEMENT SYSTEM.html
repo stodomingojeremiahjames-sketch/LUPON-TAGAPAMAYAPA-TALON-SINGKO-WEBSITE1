@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUPON-TAGAPAMAYAPA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .file-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .preview-container {
+            height: 200px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .pdf-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .image-preview {
+            max-width: 100%;
+            max-height: 100%;
+            margin: 0 auto;
+            display: block;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+    <div id="app" class="container mx-auto px-4 py-8">
+        <!-- Login Screen -->
+        <div id="login-screen" class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-8">
+            <div class="text-center mb-8">
+                <img src="SOLID 2.jpg" alt="File management system logo with document icon in blue and white color scheme" class="mx-auto mb-4 rounded-full">
+                <h1 class="text-2xl font-bold text-gray-800">File Management System</h1>
+            </div>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                    <input type="text" id="username" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="password" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Login
+                    </button>
+                </div>
+            </form>
+            <div id="login-error" class="hidden mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded"></div>
+        </div>
+
+        <!-- Admin Dashboard (initially hidden) -->
+        <div id="admin-dashboard" class="hidden">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
+                <button id="logout-btn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Logout</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <!-- Sidebar -->
+                <div class="md:col-span-1">
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h2 class="text-lg font-semibold mb-4">Admin Menu</h2>
+                        <ul class="space-y-2">
+                            <li><button id="view-files-tab" class="w-full text-left px-3 py-2 bg-blue-100 rounded-md">View Files</button></li>
+                            <li><button id="upload-file-tab" class="w-full text-left px-3 py-2 hover:bg-gray-100 rounded-md">Upload File</button></li>
+                            <li><button id="register-user-tab" class="w-full text-left px-3 py-2 hover:bg-gray-100 rounded-md">Register User</button></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="md:col-span-3">
+                    <!-- View Files Section -->
+                    <div id="view-files-section">
+                        <div class="bg-white p-4 rounded-lg shadow mb-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-xl font-semibold">Files</h2>
+                                <div class="relative">
+                                    <input type="text" id="search-files" placeholder="Search files..." class="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <span class="absolute right-3 top-2.5 text-gray-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            <div id="files-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <!-- Files will be displayed here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload File Section (initially hidden) -->
+                    <div id="upload-file-section" class="hidden bg-white p-4 rounded-lg shadow mb-6">
+                        <h2 class="text-xl font-semibold mb-4">Upload New File</h2>
+                        <form id="upload-form" class="space-y-4">
+                            <div>
+                                <label for="file-name" class="block text-sm font-medium text-gray-700">File Name</label>
+                                <input type="text" id="file-name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label for="file-description" class="block text-sm font-medium text-gray-700">Description</label>
+                                <textarea id="file-description" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                            </div>
+                            <div>
+                                <label for="file-upload" class="block text-sm font-medium text-gray-700">Select File (PDF, JPEG, DOCX, etc.)</label>
+                                <input type="file" id="file-upload" required class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            </div>
+                            <div>
+                                <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    Upload File
+                                </button>
+                            </div>
+                        </form>
+                        <div id="upload-success" class="hidden mt-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded"></div>
+                        <div id="upload-error" class="hidden mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded"></div>
+                    </div>
+
+                    <!-- Register User Section (initially hidden) -->
+                    <div id="register-user-section" class="hidden bg-white p-4 rounded-lg shadow mb-6">
+                        <h2 class="text-xl font-semibold mb-4">Register New User</h2>
+                        <form id="register-user-form" class="space-y-4">
+                            <div>
+                                <label for="new-username" class="block text-sm font-medium text-gray-700">Username</label>
+                                <input type="text" id="new-username" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label for="new-password" class="block text-sm font-medium text-gray-700">Password</label>
+                                <input type="password" id="new-password" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label for="user-role" class="block text-sm font-medium text-gray-700">Role</label>
+                                <select id="user-role" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="admin">Admin</option>
+                                    <option value="member" selected>Member</option>
+                                </select>
+                            </div>
+                            <div>
+                                <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    Register User
+                                </button>
+                            </div>
+                        </form>
+                        <div id="register-success" class="hidden mt-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded"></div>
+                        <div id="register-error" class="hidden mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Member Dashboard (initially hidden) -->
+        <div id="member-dashboard" class="hidden">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-2xl font-bold text-gray-800">Member Dashboard</h1>
+                <button id="member-logout-btn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Logout</button>
+            </div>
+
+            <div class="bg-white p-4 rounded-lg shadow">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold">Files</h2>
+                    <div class="relative">
+                        <input type="text" id="member-search-files" placeholder="Search files..." class="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <span class="absolute right-3 top-2.5 text-gray-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                            </svg>
+                        </span>
+                    </div>
+                </div>
+                <div id="member-files-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Files will be displayed here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- File Preview Modal (hidden by default) -->
+        <div id="file-preview-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+                <div class="flex justify-between items-center border-b border-gray-200 p-4">
+                    <h3 id="preview-title" class="text-lg font-semibold"></h3>
+                    <button id="close-preview" class="text-gray-500 hover:text-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="p-4 overflow-auto flex-grow">
+                    <div id="preview-container" class="preview-container">
+                        <!-- Preview content will be inserted here -->
+                    </div>
+                </div>
+                <div class="flex justify-between items-center border-t border-gray-200 p-4">
+                    <div>
+                        <p id="preview-description" class="text-sm text-gray-600"></p>
+                        <p id="preview-upload-date" class="text-xs text-gray-500"></p>
+                    </div>
+                    <div id="admin-preview-actions" class="space-x-2">
+                        <button id="delete-file-btn" class="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700">Delete</button>
+                        <button id="edit-file-btn" class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">Edit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Database and state management
+        let db;
+        let currentUser = null;
+        let files = [];
+        let users = [{
+            username: 'admin',
+            password: 'admin123',
+            role: 'admin'
+        }, {
+            username: 'member',
+            password: 'member123',
+            role: 'member'
+        }];
+
+        // Initialize the database
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('FileManagementSystem', 1);
+
+                request.onerror = function(event) {
+                    console.error("Database error:", event.target.error);
+                    reject("Database error");
+                };
+
+                request.onsuccess = function(event) {
+                    db = event.target.result;
+                    populateUserData();
+                    resolve(db);
+                };
+
+                request.onupgradeneeded = function(event) {
+                    const db = event.target.result;
+
+                    // Create object store for users if it doesn't exist
+                    if (!db.objectStoreNames.contains('users')) {
+                        const usersStore = db.createObjectStore('users', {
+                            keyPath: 'username'
+                        });
+                        usersStore.createIndex('role', 'role', {
+                            unique: false
+                        });
+                    }
+
+                    // Create object store for files if it doesn't exist
+                    if (!db.objectStoreNames.contains('files')) {
+                        const filesStore = db.createObjectStore('files', {
+                            keyPath: 'id',
+                            autoIncrement: true
+                        });
+                        filesStore.createIndex('name', 'name', {
+                            unique: false
+                        });
+                        filesStore.createIndex('uploadDate', 'uploadDate', {
+                            unique: false
+                        });
+                    }
+                };
+            });
+        }
+
+        // Populate initial user data if database is empty
+        function populateUserData() {
+            const transaction = db.transaction(['users'], 'readwrite');
+            const store = transaction.objectStore('users');
+
+            store.count().onsuccess = function(event) {
+                if (event.target.result === 0) {
+                    users.forEach(user => {
+                        store.add(user);
+                    });
+                }
+            };
+        }
+
+        // Check if username exists
+        function usernameExists(username) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['users'], 'readonly');
+                const store = transaction.objectStore('users');
+                const request = store.get(username);
+
+                request.onsuccess = function(event) {
+                    resolve(!!event.target.result);
+                };
+
+                request.onerror = function(event) {
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        // Add a new user
+        function addUser(user) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['users'], 'readwrite');
+                const store = transaction.objectStore('users');
+                const request = store.add(user);
+
+                request.onsuccess = function() {
+                    resolve();
+                };
+
+                request.onerror = function(event) {
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        // Authenticate user
+        function authenticateUser(username, password) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['users'], 'readonly');
+                const store = transaction.objectStore('users');
+                const request = store.get(username);
+
+                request.onsuccess = function(event) {
+                    const user = event.target.result;
+                    if (user && user.password === password) {
+                        resolve(user);
+                    } else {
+                        reject("Invalid username or password");
+                    }
+                };
+
+                request.onerror = function(event) {
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        // Get all files
+        function getAllFiles() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['files'], 'readonly');
+                const store = transaction.objectStore('files');
+                const request = store.getAll();
+
+                request.onsuccess = function(event) {
+                    resolve(event.target.result || []);
+                };
+
+                request.onerror = function(event) {
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        // Search files
+        function searchFiles(query) {
+            return new Promise((resolve, reject) => {
+                getAllFiles().then(files => {
+                    const results = files.filter(file =>
+                        file.name.toLowerCase().includes(query.toLowerCase()) ||
+                        file.description.toLowerCase().includes(query.toLowerCase())
+                    );
+                    resolve(results);
+                }).catch(reject);
+            });
+        }
+
+        // Add a new file
+        function addFile(file) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['files'], 'readwrite');
+                const store = transaction.objectStore('files');
+                const request = store.add(file);
+
+                request.onsuccess = function() {
+                    resolve();
+                };
+
+                request.onerror = function(event) {
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        // Delete a file
+        function deleteFile(id) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['files'], 'readwrite');
+                const store = transaction.objectStore('files');
+                const request = store.delete(Number(id));
+
+                request.onsuccess = function() {
+                    resolve();
+                };
+
+                request.onerror = function(event) {
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        // Update a file
+        function updateFile(file) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['files'], 'readwrite');
+                const store = transaction.objectStore('files');
+                const request = store.put(file);
+
+                request.onsuccess = function() {
+                    resolve();
+                };
+
+                request.onerror = function(event) {
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        // Show login screen
+        function showLoginScreen() {
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            document.getElementById('member-dashboard').classList.add('hidden');
+            document.getElementById('file-preview-modal').classList.add('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('login-error').classList.add('hidden');
+            currentUser = null;
+        }
+
+        // Show admin dashboard
+        function showAdminDashboard() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('member-dashboard').classList.add('hidden');
+            document.getElementById('admin-dashboard').classList.remove('hidden');
+
+            // Show view files section by default
+            document.getElementById('view-files-tab').classList.add('bg-blue-100');
+            document.getElementById('view-files-section').classList.remove('hidden');
+            document.getElementById('upload-file-section').classList.add('hidden');
+            document.getElementById('register-user-section').classList.add('hidden');
+
+            loadFilesForAdmin();
+        }
+
+        // Show member dashboard
+        function showMemberDashboard() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            document.getElementById('member-dashboard').classList.remove('hidden');
+
+            loadFilesForMember();
+        }
+
+        // Load files for admin
+        function loadFilesForAdmin() {
+            getAllFiles().then(files => {
+                const filesList = document.getElementById('files-list');
+                filesList.innerHTML = '';
+
+                if (files.length === 0) {
+                    filesList.innerHTML = '<p class="col-span-3 text-center text-gray-500 py-8">No files found. Upload your first file.</p>';
+                    return;
+                }
+
+                files.forEach(file => {
+                    const fileCard = createFileCard(file);
+                    filesList.appendChild(fileCard);
+                });
+            }).catch(error => {
+                console.error("Error loading files:", error);
+            });
+        }
+
+        // Load files for member
+        function loadFilesForMember() {
+            getAllFiles().then(files => {
+                const filesList = document.getElementById('member-files-list');
+                filesList.innerHTML = '';
+
+                if (files.length === 0) {
+                    filesList.innerHTML = '<p class="col-span-3 text-center text-gray-500 py-8">No files available.</p>';
+                    return;
+                }
+
+                files.forEach(file => {
+                    const fileCard = createFileCard(file);
+                    fileCard.querySelector('.file-actions').remove();
+                    filesList.appendChild(fileCard);
+                });
+            }).catch(error => {
+                console.error("Error loading files:", error);
+            });
+        }
+
+        // Create file card element
+        function createFileCard(file) {
+            const fileCard = document.createElement('div');
+            fileCard.className = 'file-card bg-white rounded-lg shadow overflow-hidden transition-all duration-200 ease-in-out';
+
+            let previewContent = '';
+            if (file.type === 'application/pdf') {
+                previewContent = `
+                    <div class="preview-container bg-gray-100 flex items-center justify-center">
+                        <img src="https://placehold.co/300x150" alt="PDF document icon representing ${file.name}">
+                    </div>
+                `;
+            } else if (file.type.startsWith('image/')) {
+                previewContent = `
+                    <div class="preview-container bg-gray-100 flex items-center justify-center">
+                        <img src="https://placehold.co/300x150" alt="Preview of image file ${file.name}">
+                    </div>
+                `;
+            } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                previewContent = `
+                    <div class="preview-container bg-gray-100 flex items-center justify-center">
+                        <img src="https://placehold.co/300x150" alt="Microsoft Word document icon representing ${file.name}">
+                    </div>
+                `;
+            } else if (file.type === 'application/vnd.ms-excel') {
+                previewContent = `
+                    <div class="preview-container bg-gray-100 flex items-center justify-center">
+                        <img src="https://placehold.co/300x150" alt="Microsoft Excel document icon representing ${file.name}">
+                    </div>
+                `;
+            } else {
+                previewContent = `
+                    <div class="preview-container bg-gray-100 flex items-center justify-center">
+                        <img src="https://placehold.co/300x150" alt="Generic document icon representing ${file.name}">
+                    </div>
+                `;
+            }
+
+            const formattedDate = new Date(file.uploadDate).toLocaleString();
+
+            fileCard.innerHTML = `
+                ${previewContent}
+                <div class="p-4">
+                    <h3 class="font-medium text-gray-900 truncate">${file.name}</h3>
+                    <p class="text-sm text-gray-600 truncate">${file.description || 'No description'}</p>
+                    <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-xs text-gray-500">${formattedDate}</span>
+                        <div class="file-actions flex space-x-1">
+                            <button class="view-btn px-2 py-1 bg-blue-100 text-blue-600 text-xs rounded hover:bg-blue-200" data-id="${file.id}">
+                                View
+                            </button>
+                            <button class="edit-btn px-2 py-1 bg-yellow-100 text-yellow-600 text-xs rounded hover:bg-yellow-200" data-id="${file.id}">
+                                Edit
+                            </button>
+                            <button class="delete-btn px-2 py-1 bg-red-100 text-red-600 text-xs rounded hover:bg-red-200" data-id="${file.id}">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            fileCard.querySelector('.view-btn').addEventListener('click', () => showFilePreview(file.id));
+            if (fileCard.querySelector('.edit-btn')) {
+                fileCard.querySelector('.edit-btn').addEventListener('click', () => editFile(file.id));
+            }
+            if (fileCard.querySelector('.delete-btn')) {
+                fileCard.querySelector('.delete-btn').addEventListener('click', () => deleteFileConfirmation(file.id));
+            }
+
+            return fileCard;
+        }
+
+        // Show file preview
+        async function showFilePreview(fileId) {
+            const transaction = db.transaction(['files'], 'readonly');
+            const store = transaction.objectStore('files');
+            const request = store.get(Number(fileId));
+
+            request.onsuccess = function(event) {
+                const file = event.target.result;
+                if (!file) return;
+
+                document.getElementById('preview-title').textContent = file.name;
+                document.getElementById('preview-description').textContent = file.description || 'No description';
+                document.getElementById('preview-upload-date').textContent = `Uploaded on ${new Date(file.uploadDate).toLocaleString()}`;
+
+                const previewContainer = document.getElementById('preview-container');
+                previewContainer.innerHTML = '';
+
+                if (file.type === 'application/pdf') {
+                    // Display PDF preview
+                    const iframe = document.createElement('iframe');
+                    iframe.className = 'pdf-iframe';
+                    iframe.src = file.content;
+                    previewContainer.appendChild(iframe);
+                } else if (file.type.startsWith('image/')) {
+                    // Display image preview
+                    const img = document.createElement('img');
+                    img.className = 'image-preview';
+                    img.src = file.content;
+                    img.alt = file.name;
+                    previewContainer.appendChild(img);
+                } else {
+                    // Display generic preview for other file types
+                    const iframe = document.createElement('iframe');
+                    iframe.className = 'pdf-iframe';
+                    iframe.src = file.content;
+                    previewContainer.appendChild(iframe);
+                }
+
+                document.getElementById('file-preview-modal').classList.remove('hidden');
+
+                // Hide admin actions if current user is member
+                if (currentUser.role === 'member') {
+                    document.getElementById('admin-preview-actions').classList.add('hidden');
+                } else {
+                    document.getElementById('admin-preview-actions').classList.remove('hidden');
+                    document.getElementById('delete-file-btn').setAttribute('data-id', file.id);
+                    document.getElementById('edit-file-btn').setAttribute('data-id', file.id);
+                }
+            };
+        }
+
+        // Close file preview
+        function closeFilePreview() {
+            document.getElementById('file-preview-modal').classList.add('hidden');
+        }
+
+        // Delete file confirmation
+        function deleteFileConfirmation(fileId) {
+            if (confirm('Are you sure you want to delete this file?')) {
+                deleteFile(fileId).then(() => {
+                    if (currentUser.role === 'admin') {
+                        loadFilesForAdmin();
+                    } else {
+                        loadFilesForMember();
+                    }
+                    closeFilePreview();
+                }).catch(error => {
+                    console.error("Error deleting file:", error);
+                    alert('Failed to delete file');
+                });
+            }
+        }
+
+        // Edit file
+        function editFile(fileId) {
+            const transaction = db.transaction(['files'], 'readonly');
+            const store = transaction.objectStore('files');
+            const request = store.get(Number(fileId));
+
+            request.onsuccess = function(event) {
+                const file = event.target.result;
+                if (!file) return;
+
+                document.getElementById('file-name').value = file.name;
+                document.getElementById('file-description').value = file.description || '';
+
+                // Switch to upload form and set edit mode
+                document.getElementById('view-files-tab').classList.remove('bg-blue-100');
+                document.getElementById('view-files-section').classList.add('hidden');
+                document.getElementById('upload-file-tab').classList.add('bg-blue-100');
+                document.getElementById('upload-file-section').classList.remove('hidden');
+
+                // Change form to edit mode
+                const form = document.getElementById('upload-form');
+                form.setAttribute('data-edit-mode', 'true');
+                form.setAttribute('data-file-id', file.id);
+
+                // Change button text
+                form.querySelector('button[type="submit"]').textContent = 'Update File';
+
+                // Scroll to form
+                document.getElementById('upload-file-section').scrollIntoView({
+                    behavior: 'smooth'
+                });
+            };
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize database
+            initDB().then(() => {
+                showLoginScreen();
+            }).catch(error => {
+                console.error("Failed to initialize database:", error);
+                document.getElementById('login-error').textContent = 'Failed to initialize the application. Please refresh the page.';
+                document.getElementById('login-error').classList.remove('hidden');
+            });
+
+            // Login form
+            document.getElementById('login-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+
+                authenticateUser(username, password).then(user => {
+                    currentUser = user;
+                    if (user.role === 'admin') {
+                        showAdminDashboard();
+                    } else {
+                        showMemberDashboard();
+                    }
+                }).catch(error => {
+                    document.getElementById('login-error').textContent = 'Invalid username or password';
+                    document.getElementById('login-error').classList.remove('hidden');
+                });
+            });
+
+            // Logout buttons
+            document.getElementById('logout-btn').addEventListener('click', showLoginScreen);
+            document.getElementById('member-logout-btn').addEventListener('click', showLoginScreen);
+
+            // Admin tabs
+            document.getElementById('view-files-tab').addEventListener('click', function() {
+                document.getElementById('view-files-tab').classList.add('bg-blue-100');
+                document.getElementById('upload-file-tab').classList.remove('bg-blue-100');
+                document.getElementById('register-user-tab').classList.remove('bg-blue-100');
+
+                document.getElementById('view-files-section').classList.remove('hidden');
+                document.getElementById('upload-file-section').classList.add('hidden');
+                document.getElementById('register-user-section').classList.add('hidden');
+
+                // Clear any form data
+                document.getElementById('upload-form').reset();
+                document.getElementById('upload-form').removeAttribute('data-edit-mode');
+                document.getElementById('upload-form').removeAttribute('data-file-id');
+            });
+
+            document.getElementById('upload-file-tab').addEventListener('click', function() {
+                document.getElementById('view-files-tab').classList.remove('bg-blue-100');
+                document.getElementById('upload-file-tab').classList.add('bg-blue-100');
+                document.getElementById('register-user-tab').classList.remove('bg-blue-100');
+
+                document.getElementById('view-files-section').classList.add('hidden');
+                document.getElementById('upload-file-section').classList.remove('hidden');
+                document.getElementById('register-user-section').classList.add('hidden');
+
+                // Clear any form data
+                document.getElementById('upload-form').reset();
+                document.getElementById('upload-form').removeAttribute('data-edit-mode');
+                document.getElementById('upload-form').removeAttribute('data-file-id');
+                document.getElementById('upload-form').querySelector('button[type="submit"]').textContent = 'Upload File';
+            });
+
+            document.getElementById('register-user-tab').addEventListener('click', function() {
+                document.getElementById('view-files-tab').classList.remove('bg-blue-100');
+                document.getElementById('upload-file-tab').classList.remove('bg-blue-100');
+                document.getElementById('register-user-tab').classList.add('bg-blue-100');
+
+                document.getElementById('view-files-section').classList.add('hidden');
+                document.getElementById('upload-file-section').classList.add('hidden');
+                document.getElementById('register-user-section').classList.remove('hidden');
+
+                // Clear any form data
+                document.getElementById('register-user-form').reset();
+            });
+
+            // Search functionality for admin
+            document.getElementById('search-files').addEventListener('input', function() {
+                const query = this.value.trim();
+
+                if (query === '') {
+                    loadFilesForAdmin();
+                    return;
+                }
+
+                searchFiles(query).then(results => {
+                    const filesList = document.getElementById('files-list');
+                    filesList.innerHTML = '';
+
+                    if (results.length === 0) {
+                        filesList.innerHTML = '<p class="col-span-3 text-center text-gray-500 py-8">No files match your search.</p>';
+                        return;
+                    }
+
+                    results.forEach(file => {
+                        const fileCard = createFileCard(file);
+                        filesList.appendChild(fileCard);
+                    });
+                }).catch(error => {
+                    console.error("Error searching files:", error);
+                });
+            });
+
+            // Search functionality for member
+            document.getElementById('member-search-files').addEventListener('input', function() {
+                const query = this.value.trim();
+
+                if (query === '') {
+                    loadFilesForMember();
+                    return;
+                }
+
+                searchFiles(query).then(results => {
+                    const filesList = document.getElementById('member-files-list');
+                    filesList.innerHTML = '';
+
+                    if (results.length === 0) {
+                        filesList.innerHTML = '<p class="col-span-3 text-center text-gray-500 py-8">No files match your search.</p>';
+                        return;
+                    }
+
+                    results.forEach(file => {
+                        const fileCard = createFileCard(file);
+                        fileCard.querySelector('.file-actions').remove();
+                        filesList.appendChild(fileCard);
+                    });
+                }).catch(error => {
+                    console.error("Error searching files:", error);
+                });
+            });
+
+            // Upload/Edit file form
+            document.getElementById('upload-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const name = document.getElementById('file-name').value;
+                const description = document.getElementById('file-description').value;
+                const fileInput = document.getElementById('file-upload');
+                const file = fileInput.files[0];
+
+                if (!name) {
+                    document.getElementById('upload-error').textContent = 'File name is required';
+                    document.getElementById('upload-error').classList.remove('hidden');
+                    return;
+                }
+
+                const isEditMode = this.getAttribute('data-edit-mode') === 'true';
+                const fileId = this.getAttribute('data-file-id');
+
+                if (isEditMode) {
+                    // Edit existing file
+                    const transaction = db.transaction(['files'], 'readwrite');
+                    const store = transaction.objectStore('files');
+                    const getRequest = store.get(Number(fileId));
+
+                    getRequest.onsuccess = function(event) {
+                        const existingFile = event.target.result;
+                        if (!existingFile) return;
+
+                        existingFile.name = name;
+                        existingFile.description = description;
+
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                existingFile.content = e.target.result;
+                                existingFile.type = file.type;
+                                updateFile(existingFile).then(() => {
+                                    document.getElementById('upload-success').textContent = 'File updated successfully';
+                                    document.getElementById('upload-success').classList.remove('hidden');
+                                    document.getElementById('upload-error').classList.add('hidden');
+
+                                    // Reset form and show files list after 2 seconds
+                                    setTimeout(() => {
+                                        document.getElementById('upload-success').classList.add('hidden');
+                                        document.getElementById('upload-form').reset();
+                                        loadFilesForAdmin();
+
+                                        // Go back to view files
+                                        document.getElementById('view-files-tab').click();
+                                    }, 2000);
+                                }).catch(error => {
+                                    document.getElementById('upload-error').textContent = 'Failed to update file';
+                                    document.getElementById('upload-error').classList.remove('hidden');
+                                    console.error("Error updating file:", error);
+                                });
+                            };
+                            reader.readAsDataURL(file);
+                        } else {
+                            // No new file selected, just update metadata
+                            updateFile(existingFile).then(() => {
+                                document.getElementById('upload-success').textContent = 'File updated successfully';
+                                document.getElementById('upload-success').classList.remove('hidden');
+                                document.getElementById('upload-error').classList.add('hidden');
+
+                                // Reset form and show files list after 2 seconds
+                                setTimeout(() => {
+                                    document.getElementById('upload-success').classList.add('hidden');
+                                    document.getElementById('upload-form').reset();
+                                    loadFilesForAdmin();
+
+                                    // Go back to view files
+                                    document.getElementById('view-files-tab').click();
+                                }, 2000);
+                            }).catch(error => {
+                                document.getElementById('upload-error').textContent = 'Failed to update file';
+                                document.getElementById('upload-error').classList.remove('hidden');
+                                console.error("Error updating file:", error);
+                            });
+                        }
+                    };
+
+                    getRequest.onerror = function(event) {
+                        console.error("Error getting file to edit:", event.target.error);
+                        document.getElementById('upload-error').textContent = 'Failed to load file for editing';
+                        document.getElementById('upload-error').classList.remove('hidden');
+                    };
+                } else {
+                    // Add new file
+                    if (!file) {
+                        document.getElementById('upload-error').textContent = 'Please select a file to upload';
+                        document.getElementById('upload-error').classList.remove('hidden');
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const newFile = {
+                            name: name,
+                            description: description,
+                            type: file.type,
+                            content: e.target.result,
+                            uploadDate: new Date().toISOString(),
+                            uploadedBy: currentUser.username
+                        };
+
+                        addFile(newFile).then(() => {
+                            document.getElementById('upload-success').textContent = 'File uploaded successfully';
+                            document.getElementById('upload-success').classList.remove('hidden');
+                            document.getElementById('upload-error').classList.add('hidden');
+
+                            // Reset form and show files list after 2 seconds
+                            setTimeout(() => {
+                                document.getElementById('upload-success').classList.add('hidden');
+                                document.getElementById('upload-form').reset();
+                                loadFilesForAdmin();
+                            }, 2000);
+                        }).catch(error => {
+                            document.getElementById('upload-error').textContent = 'Failed to upload file';
+                            document.getElementById('upload-error').classList.remove('hidden');
+                            console.error("Error uploading file:", error);
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Register user form
+            document.getElementById('register-user-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const username = document.getElementById('new-username').value;
+                const password = document.getElementById('new-password').value;
+                const role = document.getElementById('user-role').value;
+
+                if (!username || !password) {
+                    document.getElementById('register-error').textContent = 'Username and password are required';
+                    document.getElementById('register-error').classList.remove('hidden');
+                    return;
+                }
+
+                usernameExists(username).then(exists => {
+                    if (exists) {
+                        document.getElementById('register-error').textContent = 'Username already exists';
+                        document.getElementById('register-error').classList.remove('hidden');
+                    } else {
+                        const newUser = {
+                            username: username,
+                            password: password,
+                            role: role
+                        };
+
+                        addUser(newUser).then(() => {
+                            document.getElementById('register-success').textContent = 'User registered successfully';
+                            document.getElementById('register-success').classList.remove('hidden');
+                            document.getElementById('register-error').classList.add('hidden');
+
+                            // Reset form after 2 seconds
+                            setTimeout(() => {
+                                document.getElementById('register-success').classList.add('hidden');
+                                document.getElementById('register-user-form').reset();
+                            }, 2000);
+                        }).catch(error => {
+                            document.getElementById('register-error').textContent = 'Failed to register user';
+                            document.getElementById('register-error').classList.remove('hidden');
+                            console.error("Error registering user:", error);
+                        });
+                    }
+                }).catch(error => {
+                    document.getElementById('register-error').textContent = 'Error checking username';
+                    document.getElementById('register-error').classList.remove('hidden');
+                    console.error("Error checking username:", error);
+                });
+            });
+
+            // Close preview modal
+            document.getElementById('close-preview').addEventListener('click', closeFilePreview);
+
+            // Delete file from preview
+            document.getElementById('delete-file-btn').addEventListener('click', function() {
+                const fileId = this.getAttribute('data-id');
+                deleteFileConfirmation(fileId);
+            });
+
+            // Edit file from preview
+            document.getElementById('edit-file-btn').addEventListener('click', function() {
+                const fileId = this.getAttribute('data-id');
+                closeFilePreview();
+                editFile(fileId);
+            });
+        });
+    </script>
+</body>
+
+</html>
